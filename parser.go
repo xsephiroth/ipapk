@@ -7,6 +7,7 @@ import (
 	"errors"
 	"image"
 	"image/png"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -64,7 +65,11 @@ func NewAppParser(name string) (*AppInfo, error) {
 		return nil, err
 	}
 
-	reader, err := zip.NewReader(file, stat.Size())
+	return NewAppParserR(file, stat.Name(), stat.Size())
+}
+
+func NewAppParserR(r io.ReaderAt, name string, size int64) (*AppInfo, error) {
+	reader, err := zip.NewReader(r, size)
 	if err != nil {
 		return nil, err
 	}
@@ -81,14 +86,14 @@ func NewAppParser(name string) (*AppInfo, error) {
 		}
 	}
 
-	ext := filepath.Ext(stat.Name())
+	ext := filepath.Ext(name)
 
 	if ext == androidExt {
 		info, err := parseApkFile(xmlFile)
 		icon, label, err := parseApkIconAndLabel(name)
 		info.Name = label
 		info.Icon = icon
-		info.Size = stat.Size()
+		info.Size = size
 		return info, err
 	}
 
@@ -96,7 +101,7 @@ func NewAppParser(name string) (*AppInfo, error) {
 		info, err := parseIpaFile(plistFile)
 		icon, err := parseIpaIcon(iosIconFile)
 		info.Icon = icon
-		info.Size = stat.Size()
+		info.Size = size
 		return info, err
 	}
 

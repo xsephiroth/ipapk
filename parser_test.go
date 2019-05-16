@@ -83,7 +83,23 @@ func TestParseApkFile(t *testing.T) {
 }
 
 func TestParseApkIconAndLabel(t *testing.T) {
-	icon, label, err := parseApkIconAndLabel("testdata/helloworld.apk")
+	f, err := os.Open("testdata/helloworld.apk")
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	defer func() {
+		if err != nil {
+			_ = f.Close()
+		}
+	}()
+	fi, err := f.Stat()
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	icon, label, err := parseApkIconAndLabel(f, fi.Size())
 	if err != nil {
 		t.Errorf("got %v want no error", err)
 	}

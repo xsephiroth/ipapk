@@ -90,7 +90,7 @@ func NewAppParserR(r io.ReaderAt, name string, size int64) (*AppInfo, error) {
 
 	if ext == androidExt {
 		info, err := parseApkFile(xmlFile)
-		icon, label, err := parseApkIconAndLabel(name)
+		icon, label, err := parseApkIconAndLabel(r, size)
 		info.Name = label
 		info.Icon = icon
 		info.Size = size
@@ -151,8 +151,8 @@ func parseApkFile(xmlFile *zip.File) (*AppInfo, error) {
 	return info, nil
 }
 
-func parseApkIconAndLabel(name string) (image.Image, string, error) {
-	pkg, err := apk.OpenFile(name)
+func parseApkIconAndLabel(zr io.ReaderAt, size int64) (image.Image, string, error) {
+	pkg, err := apk.OpenZipReader(zr, size)
 	if err != nil {
 		return nil, "", err
 	}
